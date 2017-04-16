@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Huzzah: Color Me PubNub</title>
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.5.0.js"></script>
+    <script type="text/javascript" src="https://pubnub.github.io/eon/v/eon/1.0.0/eon.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://pubnub.github.io/eon/v/eon/1.0.0/eon.css" />
+<style type="text/css">
+  html
+  {
+        background: AliceBlue no-repeat center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+  }
+
+#myTitle {
+  text-align: center;
+  font-family: "Comic Sans MS";
+  font-size: 60px;
+}
+#divLine div {
+  display: inline-block;
+  margin: 0 1em 0 1em;
+  width: 30%;
+}
+#myCanvas {
+  display: block;
+    margin: 0 auto;
+}
+
+</style>
+</head>
+
+<body>
+
+    <p id="myTitle"> Huzzah: Color Me With PubNub </p>
+    <canvas id="myCanvas" width="500" height="250" style="border:5px solid #000000;"></canvas>
+    <p></p>
+    <div id="divLine">
+      <div id="redGauge"></div>
+      <div id="greenGauge"></div>
+      <div id="blueGauge"></div>
+    </div>
+
+
+
+<script type="text/javascript">
+
+  // document.getElementById("myCanvas").style.backgroundColor = "#ffffff";
+  var canvasColor = 'rgb(255,255,255)';
+  console.log('color: ' + canvasColor);
+  document.getElementById("myCanvas").style.backgroundColor = canvasColor;
+
+  var pubnub = new PubNub({
+      subscribeKey : "your subscribe key goes here",
+  });
+  // put your channel namehere in place of 'HuzzahChannel'
+  pubnub.subscribe({channels: ['HuzzahChannel']});
+  // decode the JSON payload whenever new images come through
+  pubnub.addListener({
+    message: function(m){
+        var msg = m.message;
+        var chan = m.channel;
+        console.log(JSON.stringify(msg));
+        console.log(chan);
+        var colorMsg = JSON.parse(JSON.stringify(msg));
+        console.log("eon: " + colorMsg["eon"].R);
+        updateCanvasColor(colorMsg["eon"].R,colorMsg["eon"].G,colorMsg["eon"].B);
+      }
+  });
+
+  function updateCanvasColor( red, green, blue)
+  {
+    var newCanvasColor = 'rgb('+red+','+green+','+blue+')';
+    document.getElementById("myCanvas").style.backgroundColor = newCanvasColor;
+  }
+
+  eon.chart({
+      pubnub: pubnub,
+      channels: ["HuzzahChannel"],
+      generate: {
+          bindto: '#redGauge',
+          data: {
+              labels: true,
+              type:'gauge'
+            },
+            gauge: {
+              min: 0,
+              max: 255
+            },
+            color: {
+              pattern: ['#550000', '#B10000', '#FF0000'],
+              threshold: {
+                values: [85, 177, 255]
+              }
+            }
+          },
+          pubnub: pubnub,
+          transform: function(m) {
+            return { eon: {
+                redGauge: m.eon.R
+            }}
+          }
+  });
+
+  eon.chart({
+      pubnub: pubnub,
+      channels: ["HuzzahChannel"],
+      generate: {
+          bindto: '#greenGauge',
+          data: {
+              labels: true,
+              type:'gauge'
+            },
+            gauge: {
+              min: 0,
+              max: 255
+            },
+            color: {
+              pattern: ['#005500', '#00B100', '#00FF00'],
+              threshold: {
+                values: [85, 177, 255]
+              }
+            }
+          },
+          pubnub: pubnub,
+          transform: function(m) {
+            return { eon: {
+                greenGauge: m.eon.G
+            }}
+          }
+  });
+
+  eon.chart({
+      pubnub: pubnub,
+      channels: ["HuzzahChannel"],
+      generate: {
+          bindto: '#blueGauge',
+          data: {
+              labels: true,
+              type:'gauge'
+            },
+            gauge: {
+              min: 0,
+              max: 255
+            },
+            color: {
+              pattern: ['#000055', '#0000B1', '#0000FF'],
+              threshold: {
+                values: [85, 177, 255]
+              }
+            }
+          },
+          pubnub: pubnub,
+          transform: function(m) {
+            return { eon: {
+                blueGauge: m.eon.B
+            }}
+          }
+  });
+  </script>
+
+</body>
+</html>
